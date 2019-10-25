@@ -1,0 +1,11 @@
+[package]
+name = "basic-imap"
+version = "0.1.0"
+authors = ["Matthias Fauconneau <matthias.fauconneau@gmail.com>"]
+
+[dependencies]
+imap = ""
+native-tls = ""
+dbus = ""
+nix = ""
+error-chain = ""
