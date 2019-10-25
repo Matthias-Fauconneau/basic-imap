@@ -5,11 +5,9 @@ extern crate nix;
 extern crate dbus;
 mod accounts;
 
-fn main() {
-    //use std::io::Write;
-    //std::io::stdout().write_all( fetch_inbox_top( &email().unwrap(), &password().unwrap() ).unwrap() );
-    use std::fmt::Write;
-    writeln!( fetch_inbox_top( &email().unwrap(), &password().unwrap() ).unwrap() ).unwrap();
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    println!("{}", fetch_inbox_top( &email()?, &password()? )? );
+    Ok(())
 }
 
 fn email() -> Result<String, Box<dyn std::error::Error>> {
@@ -20,7 +18,6 @@ fn email() -> Result<String, Box<dyn std::error::Error>> {
 
 fn password() -> Result<String, Box<dyn std::error::Error>> {
     use std::io::BufRead;
-    //Ok(String::from_utf8(std::process::Command::new("kwallet-query").args(&["kdewallet", "-f","imap", "-r","akonadi_imap_resource_0rc"]).output()?.stdout.lines().next().unwrap()?)?)
     Ok(std::process::Command::new("kwallet-query").args(&["kdewallet", "-f","imap", "-r","akonadi_imap_resource_0rc"]).output()?.stdout.lines().next().unwrap()?)
 }
 
