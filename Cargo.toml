@@ -1,11 +1,13 @@
 [package]
 name = "basic-imap"
-version = "0.1.0"
+version = "0.0.0"
 authors = ["Matthias Fauconneau <matthias.fauconneau@gmail.com>"]
 
 [dependencies]
-imap = ""
+imap = { git = "https://github.com/jonhoo/rust-imap.git" }
 native-tls = ""
-dbus = ""
+dbus = "^0.7"
 nix = ""
-error-chain = ""
+mailparse = ""
+chrono = ""
+notify-rust = ""
