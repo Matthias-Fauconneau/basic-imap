@@ -1,3 +1,4 @@
+#!/usr/bin/fish -c clear && cargo +nightly run
 [package]
 name = "basic-imap"
 version = "0.0.0"

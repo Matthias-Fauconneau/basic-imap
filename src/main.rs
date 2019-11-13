@@ -1,3 +1,4 @@
+#!/usr/bin/fish -c clear && cargo +nightly run
 #![feature(backtrace)]
 #![feature(never_type)]
 
@@ -6,7 +7,7 @@ impl std::fmt::Display for NoneError { fn fmt(&self, f : &mut std::fmt::Formatte
 impl std::error::Error for NoneError {}
 
 extern crate anyhow;
-use anyhow::Result;
+use anyhow::{Result, Context};
 
 extern crate dbus;
 mod accounts;
@@ -21,6 +22,20 @@ fn email(domain : &str) -> Result<String> {
 fn password() -> Result<String> {
     use std::io::BufRead;
     Ok(std::process::Command::new("kwallet-query").args(&["kdewallet","-f","imap","-r","akonadi_imap_resource_0rc"]).output()?.stdout.lines().next().ok_or(NoneError)??)
+}
+
+trait StripEnd {
+    fn strip_end<'a, Patterns : IntoIterator<Item = &'a Self>>(&self, patterns : Patterns) -> &Self where Self : 'a;
+}
+impl StripEnd for str {
+    fn strip_end<'a, Patterns : IntoIterator<Item = &'a Self>> (&self, patterns : Patterns) -> &Self where Self : 'a {
+        for pattern in patterns {
+            if self.ends_with(&pattern) {
+                return &self[0..self.len()-pattern.len()];
+            }
+        }
+        self
+    }
 }
 
 extern crate mailparse;
@@ -50,7 +65,9 @@ fn main() -> Result<!> {
                 let subject = headers.get_first_value("Subject")?.unwrap_or_else(||"<no subject>".into());
                 println!("{}", subject);
                 let date = headers.get_first_value("Date")?.ok_or(NoneError)?;
-                let date = chrono::DateTime::parse_from_str(&date, "%a, %e %b %Y %H:%M:%S %z (UTC)")?.with_timezone(&chrono::Local);
+                let subs = ["UTC"," CST"].iter().map(|s| { format!(" ({})",s) }).collect::<Vec<_>>();
+                let date = date.strip_end(subs.iter().map(|x|&**x));
+                let date = chrono::DateTime::parse_from_str(&date, "%a, %e %b %Y %H:%M:%S %z").with_context(||date.to_string())?.with_timezone(&chrono::Local);
                 subjects.insert(date, subject);
             }
 
