@@ -49,16 +49,18 @@ fn main() -> Result<!> {
                 use mailparse::MailHeaderMap;
                 let subject = headers.get_first_value("Subject")?.unwrap_or_else(||"<no subject>".into());
                 println!("{}", subject);
-                let date = chrono::DateTime::parse_from_rfc2822( &headers.get_first_value("Date")?.ok_or(NoneError)? )?.with_timezone(&chrono::Local);
+                let date = headers.get_first_value("Date")?.ok_or(NoneError)?;
+                let date = chrono::DateTime::parse_from_str(&date, "%a, %e %b %Y %H:%M:%S %z (UTC)")?.with_timezone(&chrono::Local);
                 subjects.insert(date, subject);
             }
 
             if !subjects.is_empty() {
-                notify_rust::Notification::new().summary( &format!("{}",num_unseen) )
-                                                                      .body( &subjects.values().rev().map(|s| &**s).collect::<Vec<&str>>().join("\n") )
-                                                                      .icon("notification-message-email")
-                                                                      .hint(notify_rust::NotificationHint::Category("email.arrived".into()))
-                                                                      .show()?;
+                if let Err(e) = notify_rust::Notification::new().summary( &format!("{}",num_unseen) )
+                                                                                        .body( &subjects.values().rev().map(|s| &**s).collect::<Vec<&str>>().join("\n") )
+                                                                                        .icon("notification-message-email")
+                                                                                        .hint(notify_rust::NotificationHint::Category("email.arrived".into()))
+                                                                                        .show()
+                                    { println!("{:?}", e); }
             }
 
             session.idle()?.wait_keepalive()?;
